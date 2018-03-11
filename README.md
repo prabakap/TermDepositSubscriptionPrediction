@@ -15,6 +15,6 @@ I have used [SMOTE](https://arxiv.org/pdf/1106.1813.pdf) to solve the Class Imba
 - [Recall Score](https://en.wikipedia.org/wiki/Precision_and_recall)
 - [Accuracy](https://en.wikipedia.org/wiki/Precision_and_recall)
 
-![](BankMarketing_files\figure-html\modelcomp.PNG)
+![](BankMarketing_files/figure-html/modelcomp.PNG)
 
 For detailed explanation look into [BankMarketing.md](https://github.com/prabakap/TermDepositSubscriptionPrediction/blob/master/BankMarketing.md) or download [BankMarketing.html](https://github.com/prabakap/TermDepositSubscriptionPrediction/blob/master/BankMarketing.html) report and view it in your browser.
