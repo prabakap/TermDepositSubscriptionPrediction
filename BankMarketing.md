@@ -1,7 +1,7 @@
 ---
 title: "Term Deposit Subscription Prediction"
 author: "Pradeepkumar Prabakaran"
-subtitle: Balancing Class Imbalance problem
+subtitle: "Balancing Class Imbalance problem"
 output:
   html_document:
     keep_md: TRUE
@@ -35,6 +35,8 @@ library(corrplot)
 library(pROC)
 library(ROCR)
 library(forcats)
+library(knitr)
+library(kableExtra)
 ```
 
 ##Exploratory Data Analysis
@@ -255,7 +257,8 @@ Confusion Matrix Before SMOTE - Here we can see that our Recall score is very le
 
 
 ```r
-confusionMatrix(Prediction_1, testSplit$y,positive ='1',mode = "prec_recall")
+DT_Before_CM<- confusionMatrix(Prediction_1, testSplit$y,positive ='1',mode = "prec_recall")
+DT_Before_CM
 ```
 
 ```
@@ -333,35 +336,19 @@ Confusion Matrix After SMOTE - Here we can see the increase in our Recall score 
 
 
 ```r
-confusionMatrix(Prediction_2, testSplit$y,positive = '1', mode = "prec_recall")
+DT_After_CM<-confusionMatrix(Prediction_2, testSplit$y,positive = '1', mode = "prec_recall")
+DT_After_CM$byClass
 ```
 
 ```
-## Confusion Matrix and Statistics
-## 
-##           Reference
-## Prediction     0     1
-##          0 10085   392
-##          1  1891  1194
-##                                           
-##                Accuracy : 0.8317          
-##                  95% CI : (0.8253, 0.8379)
-##     No Information Rate : 0.8831          
-##     P-Value [Acc > NIR] : 1               
-##                                           
-##                   Kappa : 0.4219          
-##  Mcnemar's Test P-Value : <2e-16          
-##                                           
-##               Precision : 0.38703         
-##                  Recall : 0.75284         
-##                      F1 : 0.51124         
-##              Prevalence : 0.11694         
-##          Detection Rate : 0.08804         
-##    Detection Prevalence : 0.22747         
-##       Balanced Accuracy : 0.79747         
-##                                           
-##        'Positive' Class : 1               
-## 
+##          Sensitivity          Specificity       Pos Pred Value 
+##           0.75283733           0.84210087           0.38703404 
+##       Neg Pred Value            Precision               Recall 
+##           0.96258471           0.38703404           0.75283733 
+##                   F1           Prevalence       Detection Rate 
+##           0.51123956           0.11694440           0.08804011 
+## Detection Prevalence    Balanced Accuracy 
+##           0.22747382           0.79746910
 ```
 
 ####Random Forest Classifier After SMOTE
@@ -379,7 +366,8 @@ Again, we can see an increase in our Recall and F1 Score. A significant increase
 
 
 ```r
-confusionMatrix(Prediction_3, testSplit$y,positive = '1', mode = "prec_recall")
+RF_After_CM<-confusionMatrix(Prediction_3, testSplit$y,positive = '1', mode = "prec_recall")
+RF_After_CM
 ```
 
 ```
@@ -419,10 +407,59 @@ varImpPlot(randomForest_fit)
 
 ![](BankMarketing_files/figure-html/RF-varImpPlot-1.png)<!-- -->
 
+##Model Comparision
+
+The below table clearly shows the performance of our models with respect to F1, Recall and Accuracy Scores
+
+
+```r
+models_table <- data.frame(models=c("Decision Tree Before SMOTE","Decision Tree After SMOTE","Random Forest After SMOTE"),
+                        F1_Score=c(DT_Before_CM$byClass['F1'],DT_After_CM$byClass['F1'],
+                                       RF_After_CM$byClass['F1']),
+                        Recall_Score=c(DT_Before_CM$byClass['Recall'],DT_After_CM$byClass['Recall'],
+                                       RF_After_CM$byClass['Recall']),
+                        Accuracy_Score=c(DT_Before_CM$overall['Accuracy'],DT_After_CM$overall['Accuracy'],
+                                     RF_After_CM$overall['Accuracy']))
+models_table <- models_table %>% remove_rownames %>% column_to_rownames(var="models")
+
+kable(models_table, "html") %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% column_spec(1, width = "8cm")
+```
+
+<table class="table table-striped table-hover table-condensed table-responsive" style="margin-left: auto; margin-right: auto;">
+ <thead>
+  <tr>
+   <th style="text-align:left;">   </th>
+   <th style="text-align:right;"> F1_Score </th>
+   <th style="text-align:right;"> Recall_Score </th>
+   <th style="text-align:right;"> Accuracy_Score </th>
+  </tr>
+ </thead>
+<tbody>
+  <tr>
+   <td style="text-align:left;width: 8cm; "> Decision Tree Before SMOTE </td>
+   <td style="text-align:right;"> 0.4377823 </td>
+   <td style="text-align:right;"> 0.3360656 </td>
+   <td style="text-align:right;"> 0.8990562 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;width: 8cm; "> Decision Tree After SMOTE </td>
+   <td style="text-align:right;"> 0.5112396 </td>
+   <td style="text-align:right;"> 0.7528373 </td>
+   <td style="text-align:right;"> 0.8316620 </td>
+  </tr>
+  <tr>
+   <td style="text-align:left;width: 8cm; "> Random Forest After SMOTE </td>
+   <td style="text-align:right;"> 0.5558818 </td>
+   <td style="text-align:right;"> 0.8953342 </td>
+   <td style="text-align:right;"> 0.8326943 </td>
+  </tr>
+</tbody>
+</table>
+
 ##Recommendation
 
-*Duration has a positive effect on our outcome, the longer customer spends with a particular product, the more likely they are to be interested in using the product, so there are higher chances that they will opt for our services
+* Duration has a positive effect on our outcome, the longer customer spends with a particular product, the more likely they are to be interested in using the product, so there are higher chances that they will opt for our services
 
-*During the next campaign if we see customer spends more time, special attention and remarketing strategies must be implemented to make sure customer opts for the service
+* During the next campaign if we see customer spends more time, special attention and remarketing strategies must be implemented to make sure customer opts for the service
 
-*Apart from that we can concentrate on the customers whose previous campaign outcome is success, they also have good chances of becoming our bank's customer
+* Apart from that we can concentrate on the customers whose previous campaign outcome is success, they also have good chances of becoming our bank's customer

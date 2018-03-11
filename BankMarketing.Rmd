@@ -1,7 +1,7 @@
 ---
 title: "Term Deposit Subscription Prediction"
 author: "Pradeepkumar Prabakaran"
-subtitle: Balancing Class Imbalance problem
+subtitle: "Balancing Class Imbalance problem"
 output:
   html_document:
     keep_md: TRUE
@@ -34,6 +34,8 @@ library(corrplot)
 library(pROC)
 library(ROCR)
 library(forcats)
+library(knitr)
+library(kableExtra)
 ```
 
 ##Exploratory Data Analysis
@@ -158,7 +160,8 @@ Prediction_1 <- predict(fit_1, testSplit, type = "class")
 Confusion Matrix Before SMOTE - Here we can see that our Recall score is very less when compared to the precision score, our main objective is to boost our Recall score because we are concerned about predicting the customer who will subscribe and our model should also give better F1 score.
 
 ```{r Confusion-Matrix-DT-BeforeSMOTE}
-confusionMatrix(Prediction_1, testSplit$y,positive ='1',mode = "prec_recall")
+DT_Before_CM<- confusionMatrix(Prediction_1, testSplit$y,positive ='1',mode = "prec_recall")
+DT_Before_CM
 ```
 
 ###After SMOTE
@@ -194,7 +197,8 @@ Prediction_2 <- predict(fit_2, testSplit, type = "class")
 Confusion Matrix After SMOTE - Here we can see the increase in our Recall score and F-1 score. This shows that our objectives are met.Run advanced models to see if you can further increase the F-1 score.
 
 ```{r Confusion-Matrix-DT-AfterSMOTE}
-confusionMatrix(Prediction_2, testSplit$y,positive = '1', mode = "prec_recall")
+DT_After_CM<-confusionMatrix(Prediction_2, testSplit$y,positive = '1', mode = "prec_recall")
+DT_After_CM$byClass
 ```
 
 ####Random Forest Classifier After SMOTE
@@ -210,7 +214,8 @@ Prediction_3 <- predict(randomForest_fit, testSplit, type = "class")
 Again, we can see an increase in our Recall and F1 Score. A significant increase when compared to Before SMOTE part. This clearly shows how solving Class-Imbalance can significantly improve our model performance.
 
 ```{r CM-RF-AfterSMOTE}
-confusionMatrix(Prediction_3, testSplit$y,positive = '1', mode = "prec_recall")
+RF_After_CM<-confusionMatrix(Prediction_3, testSplit$y,positive = '1', mode = "prec_recall")
+RF_After_CM
 ```
 
 By considering varImpPlot we can get an idea about important variables detected by our RandomForest model. From our RF model and DT model we can confirm that **duration and previous** are our important variables.
@@ -219,10 +224,29 @@ By considering varImpPlot we can get an idea about important variables detected 
 varImpPlot(randomForest_fit)
 ```
 
+##Model Comparision
+
+The below table clearly shows the performance of our models with respect to F1, Recall and Accuracy Scores
+
+```{r}
+
+models_table <- data.frame(models=c("Decision Tree Before SMOTE","Decision Tree After SMOTE","Random Forest After SMOTE"),
+                        F1_Score=c(DT_Before_CM$byClass['F1'],DT_After_CM$byClass['F1'],
+                                       RF_After_CM$byClass['F1']),
+                        Recall_Score=c(DT_Before_CM$byClass['Recall'],DT_After_CM$byClass['Recall'],
+                                       RF_After_CM$byClass['Recall']),
+                        Accuracy_Score=c(DT_Before_CM$overall['Accuracy'],DT_After_CM$overall['Accuracy'],
+                                     RF_After_CM$overall['Accuracy']))
+models_table <- models_table %>% remove_rownames %>% column_to_rownames(var="models")
+
+kable(models_table, "html") %>% kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive")) %>% column_spec(1, width = "8cm")
+
+```
+
 ##Recommendation
 
-*Duration has a positive effect on our outcome, the longer customer spends with a particular product, the more likely they are to be interested in using the product, so there are higher chances that they will opt for our services
+* Duration has a positive effect on our outcome, the longer customer spends with a particular product, the more likely they are to be interested in using the product, so there are higher chances that they will opt for our services
 
-*During the next campaign if we see customer spends more time, special attention and remarketing strategies must be implemented to make sure customer opts for the service
+* During the next campaign if we see customer spends more time, special attention and remarketing strategies must be implemented to make sure customer opts for the service
 
-*Apart from that we can concentrate on the customers whose previous campaign outcome is success, they also have good chances of becoming our bank's customer
+* Apart from that we can concentrate on the customers whose previous campaign outcome is success, they also have good chances of becoming our bank's customer
